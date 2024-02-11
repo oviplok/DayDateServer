@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class DayDateApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(DayDateApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(DayDateApplication.class, args);
+    }
 
 }
