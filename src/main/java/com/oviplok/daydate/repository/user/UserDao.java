@@ -1,8 +1,9 @@
 package com.oviplok.daydate.repository.user;
 
+import com.oviplok.daydate.model.chat.Chat;
 import com.oviplok.daydate.model.user.User;
 import com.oviplok.daydate.model.user.connections.Connections;
-import org.apache.commons.logging.Log;
+import com.oviplok.daydate.repository.chat.ChatDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Logger;
 
 @Service
 public class UserDao {
@@ -22,6 +22,8 @@ public class UserDao {
     private UserRepository repository;
 
     private final MongoTemplate mongoTemplate;
+
+    private ChatDao chatDao;
 
     @Autowired
     public UserDao(MongoTemplate mongoTemplate) {
@@ -97,9 +99,6 @@ public class UserDao {
     }
 
 
-
-
-
     public List<User> getAllUsers(){
         //return repository.findAll();
         List<User> users = new ArrayList<>();
@@ -126,5 +125,45 @@ public class UserDao {
         else {
             return false;
         }
+    }
+
+    public boolean isMatch(String userId, String partnersId) {
+        Query queryUser = new Query(Criteria
+                .where("id").is(userId)
+                .and("connections.right." + partnersId).exists(true));
+
+        Query queryPartner = new Query(Criteria
+                .where("id").is(partnersId)
+                .and("connections.right." + userId).exists(true));
+
+        boolean resultUser = mongoTemplate.exists(queryUser, User.class);
+        boolean resultPartner= mongoTemplate.exists(queryPartner,User.class);
+        if(resultUser && resultPartner){
+            addMatchConnections(userId,partnersId);
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    //TODO addMatch + addNewChat
+    private void addMatchConnections(String userId, String partnersId) {
+        List<String> users = new ArrayList<>();
+        users.add(userId);
+        users.add(partnersId);
+        Chat newChat = new Chat(users);
+        chatDao.addNewChat(newChat);
+        String chatId = chatDao.getNewChatID(userId,partnersId);
+
+        addMatch(userId,partnersId,chatId);
+        addMatch(partnersId,userId,chatId);
+    }
+
+    private void addMatch(String userId, String partnersId,String chatId) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("id").is(userId));
+        Update update = new Update();
+        update.set("connections.match." + partnersId, chatId);
+        mongoTemplate.updateFirst(query, update, User.class);
     }
 }

@@ -14,7 +14,7 @@ import java.util.Optional;
 public class UserController {
     // TODO: addUser, deleteUserById, getUserById,                  needCheck
     //  updateUserById, getUserSex,                                 needCheck
-    //  getPartners,  onRight,  onLeft,  isConnectionMatch,
+    //  getPartners,  onRight,  onLeft,  isConnectionMatch,         needCheck
     //  getUserMatchId, FetchMatchInformation,
     //  deleteUser, deleteUserConnection
 
@@ -70,10 +70,10 @@ public class UserController {
         userDao.updateConnectionOnLeft(user_id,partners_id);
     }
 
-    @PostMapping("/{usr_id}/partners/match/{partners_id}")
+    @PutMapping("/{usr_id}/partners/match/{partners_id}")
     public boolean isMatch(@PathVariable("usr_id") String user_id, @PathVariable("partners_id") String partners_id){
-
-        return false;
+        boolean result = userDao.isMatch(user_id,partners_id);
+        return result;
     }
 
 
