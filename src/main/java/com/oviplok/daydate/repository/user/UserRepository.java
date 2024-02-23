@@ -4,12 +4,14 @@ import com.oviplok.daydate.model.user.User;
 import com.oviplok.daydate.model.user.connections.Connections;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 import java.util.List;
 
+@EnableMongoRepositories
 public interface UserRepository extends MongoRepository<User,String> {
 
-    void updateUserById(String id, User user);
+//    void updateUserById(String id, User user);
 
     // TODO: Погуглить запросы
     @Query("{'$or':[{'name': {$regex : ?0, $options: 'i'}}, {'phone': {$regex : ?0, $options: 'i'}}, {'mail': {$regex : ?0, $options: 'i'}}]}")

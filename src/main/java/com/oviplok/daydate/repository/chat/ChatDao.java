@@ -2,13 +2,16 @@ package com.oviplok.daydate.repository.chat;
 
 
 import com.oviplok.daydate.model.chat.Chat;
+import com.oviplok.daydate.model.chat.messages.Messages;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -42,6 +45,27 @@ public class ChatDao {
         }
     }
 
+
+    //TODO Delete match
+    public void deleteChatAndMatch(String id){
+        repository.deleteById(id);
+    }
+
+
+    public void addMessage(String chatId, String messageText,String userId){
+        Query query = new Query(Criteria.where("id").is(chatId));
+
+        Messages newMessage = new Messages();
+        newMessage.setMessageText(messageText);
+        newMessage.setRead(false);
+        newMessage.setUserId(userId);
+        newMessage.setMessageTime(LocalDateTime.now());
+
+        Update update = new Update();
+        update.addToSet("messages", newMessage);
+
+        mongoTemplate.updateFirst(query, update, Chat.class);
+    }
     public List<Chat> findUsersChats(String userId){
         return repository.findByUserId(userId);
     }

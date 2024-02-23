@@ -12,11 +12,12 @@ import java.util.Optional;
 
 @RestController
 public class UserController {
-    // TODO: addUser, deleteUserById, getUserById,                  needCheck
+    // TODO: addUser, deleteUserById, getUserById,                  Checked
     //  updateUserById, getUserSex,                                 needCheck
     //  getPartners,  onRight,  onLeft,  isConnectionMatch,         needCheck
-    //  getUserMatchId, FetchMatchInformation,
-    //  deleteUser, deleteUserConnection
+    //  getUserMatchId(getMatches), FetchMatchInformation(getUserById), needCheck
+    //  deleteUserConnection,
+    //  UserAuth, UpdateUserSettings,updateUserPrefer, updateUserPasswordAndEmail
 
     @Autowired
     private UserDao userDao;
@@ -26,12 +27,12 @@ public class UserController {
         return userDao.addUser(user);
     }
 
-    @DeleteMapping("/user/delete/{usr_id}")
+    @DeleteMapping("/user/{usr_id}/delete_profile")
     public void deleteUserById(@PathVariable("usr_id") String id){
         userDao.deleteById(id);
     }
 
-    @GetMapping("/user/get/{usr_id}")
+    @GetMapping("/user/{usr_id}")
     public Optional<User> getUserById(@PathVariable("usr_id") String id){
         return userDao.getUserById(id);
     }
@@ -48,33 +49,46 @@ public class UserController {
 
     }
 
-    @GetMapping("/user/get/{usr_id}/sex")
+    @GetMapping("/user/{usr_id}/get_sex")
     public String getUserSex(@PathVariable("usr_id") String id){
         return userDao.getUserSex(id);
     }
 
-    @GetMapping("/{usr_id}/partners/{pref_sex}")
+    @GetMapping("/user/{usr_id}/partners/{pref_sex}")
     public List<User> getPartners(@PathVariable("usr_id") String id, @PathVariable("pref_sex") String pref_sex){
-
         return userDao.getUsersForSwipeList(id,pref_sex);
     }
 
-    // TODO:
-    @PostMapping("/{usr_id}/partners/right/{partners_id}")
+    // TODO: MAKE PUT
+    @PostMapping("/user/{usr_id}/partners/right/{partners_id}")
     public void onRight(@PathVariable("usr_id") String user_id, @PathVariable("partners_id") String partners_id){
         userDao.updateConnectionOnRight(user_id,partners_id);
     }
 
-    @PostMapping("/{usr_id}/partners/left/{partners_id}")
+    @PostMapping("/user/{usr_id}/partners/left/{partners_id}")
     public void onLeft(@PathVariable("usr_id") String user_id, @PathVariable("partners_id") String partners_id){
         userDao.updateConnectionOnLeft(user_id,partners_id);
     }
 
-    @PutMapping("/{usr_id}/partners/match/{partners_id}")
+    @PutMapping("/user/{usr_id}/partners/matches/is_match/{partners_id}")
     public boolean isMatch(@PathVariable("usr_id") String user_id, @PathVariable("partners_id") String partners_id){
-        boolean result = userDao.isMatch(user_id,partners_id);
-        return result;
+        return userDao.isMatch(user_id,partners_id);
     }
+
+    @GetMapping("/user/{usr_id}/partners/matches/get_id")
+    public List<String> getUsersMatchesId(@PathVariable("usr_id") String user_id){
+        return userDao.getMatches(user_id);
+    }
+    //Really need?
+    @GetMapping("user/{usr_id}/partners/matches/get_info/{partners_id}")
+    public User getMatchInfo(@PathVariable("usr_id") String user_id, @PathVariable String partners_id){
+        Optional<User> opt_user= userDao.getUserById(partners_id);
+        return opt_user.get();
+    }
+
+
+
+
 
 
 

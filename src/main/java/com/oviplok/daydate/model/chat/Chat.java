@@ -5,11 +5,17 @@ import jakarta.persistence.Embedded;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
 
-@Document
+@Setter
+@Getter
+@Data
+@Document(collection = "chats")
 public class Chat {
     //TODO FIND ID GENERATOR
     @Id
@@ -26,24 +32,12 @@ public class Chat {
         this.usersID = usersID;
     }
 
-    public Messages getMessages() {
-        return messages;
-    }
-
     public void setMessages(Messages messages) {
         this.messages = messages;
     }
 
-    public List<String> getUsersID() {
-        return usersID;
-    }
-
     public void setUsersID(List<String> usersID) {
         this.usersID = usersID;
-    }
-
-    public String getId() {
-        return id;
     }
 
     public void setId(String id) {

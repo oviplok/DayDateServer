@@ -4,8 +4,12 @@ import com.oviplok.daydate.model.chat.Chat;
 import com.oviplok.daydate.model.user.User;
 import com.oviplok.daydate.model.user.connections.Connections;
 import com.oviplok.daydate.repository.chat.ChatDao;
+import com.oviplok.daydate.utils.PasswordEncryptionService;
+
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.ArithmeticOperators;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -14,7 +18,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Service
 public class UserDao {
@@ -23,11 +30,18 @@ public class UserDao {
 
     private final MongoTemplate mongoTemplate;
 
+
+    private final PasswordEncryptionService passwordEncryptionService;
+
     private ChatDao chatDao;
 
     @Autowired
-    public UserDao(MongoTemplate mongoTemplate) {
+    public UserDao(MongoTemplate mongoTemplate,
+                   PasswordEncryptionService passwordEncryptionService,
+                   ChatDao chatDao) {
         this.mongoTemplate = mongoTemplate;
+        this.passwordEncryptionService = passwordEncryptionService;
+        this.chatDao = chatDao;
     }
 
     public List<User> getUserByKeyword(String keyword){
@@ -42,6 +56,7 @@ public class UserDao {
     }
 
     public User addUser(User user){
+        user.setPassword(passwordEncryptionService.encryptPassword(user.getPassword()));
         return repository.save(user);
     }
 
@@ -115,7 +130,7 @@ public class UserDao {
             existingUser.setId(id);
             existingUser.setName(user.getName());
             existingUser.setMail(user.getMail());
-            existingUser.setPassword(user.getPassword());
+            existingUser.setPassword(passwordEncryptionService.encryptPassword(user.getPassword()));
             existingUser.setPhone(user.getPhone());
             existingUser.setSex(user.getSex());
             existingUser.setProfileImageUrl(user.getProfileImageUrl());
@@ -165,5 +180,16 @@ public class UserDao {
         Update update = new Update();
         update.set("connections.match." + partnersId, chatId);
         mongoTemplate.updateFirst(query, update, User.class);
+    }
+
+    public List<String> getMatches(String userId) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("id").is(userId));
+        query.fields().include("connections.matches");
+        List<String> matches = Objects.requireNonNull(mongoTemplate.findOne(query, User.class))
+                .getConnections()
+                .getMatches().keySet()
+                .stream().toList();
+        return matches;
     }
 }
